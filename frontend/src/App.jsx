@@ -16,13 +16,30 @@ export default function App() {
   const [jobs, setJobs] = useState([]);
   const [history, setHistory] = useState([]);
   const [toast, setToast] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
 
   const analyze = async () => {
-    const { data } = await api.get('/analyze', { params: { url } });
-    setInfo(data); setSelected(data.recommended_format_id || '');
+    if (!url.trim()) return;
+    setAnalyzing(true);
+    try {
+      const { data } = await api.get('/analyze', { params: { url } });
+      setInfo(data);
+      setSelected(data.recommended_format_id || '');
+    } catch (error) {
+      setToast(error?.response?.data?.error || 'Analyze failed');
+      setInfo(null);
+    } finally {
+      setAnalyzing(false);
+      setTimeout(() => setToast(''), 2500);
+    }
   };
   const startDownload = async () => {
-    await api.post('/download', { url, format_id: selected, audio_only: audioOnly, subtitles });
+    try {
+      await api.post('/download', { url, format_id: selected, audio_only: audioOnly, subtitles });
+    } catch (error) {
+      setToast(error?.response?.data?.error || 'Download failed');
+      setTimeout(() => setToast(''), 2500);
+    }
   };
   const cancel = async (id) => { await api.post('/cancel', { job_id: id }); };
 
@@ -46,7 +63,7 @@ export default function App() {
   return <main className='min-h-screen bg-zinc-950 text-white p-6'>
     <div className='max-w-5xl mx-auto space-y-4'>
       <h1 className='text-3xl font-bold'>Downloadly (Local Only)</h1>
-      <URLInput url={url} setUrl={setUrl} onAnalyze={analyze} onDrop={(e)=>{e.preventDefault(); setUrl(e.dataTransfer.getData('text'));}} />
+      <URLInput url={url} setUrl={setUrl} onAnalyze={analyze} isAnalyzing={analyzing} onDrop={(e)=>{e.preventDefault(); setUrl(e.dataTransfer.getData('text'));}} />
       <VideoPreview info={info} />
       {info && <FormatSelector formats={info.formats} selected={selected} setSelected={setSelected} audioOnly={audioOnly} setAudioOnly={setAudioOnly} subtitles={subtitles} setSubtitles={setSubtitles} />}
       <button onClick={startDownload} onKeyDown={(e)=>e.key==='Enter'&&startDownload()} className='px-5 py-2 rounded bg-emerald-600'>Start Download (Ctrl+Enter)</button>

@@ -112,7 +112,6 @@ class DownloadManager:
             "progress_hooks": [hook],
             "quiet": True,
             "noplaylist": True,
-            "merge_output_format": "mp4",
             "writesubtitles": subtitles,
             "subtitleslangs": ["en"],
             "postprocessors": [],
@@ -126,7 +125,7 @@ class DownloadManager:
                 "preferredquality": "192",
             })
         else:
-            ydl_opts["format"] = format_id or "bestvideo+bestaudio/best"
+            ydl_opts["format"] = f"{format_id}/best" if format_id else "best[ext=mp4]/best"
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
