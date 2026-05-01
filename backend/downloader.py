@@ -8,7 +8,7 @@ from typing import Any
 
 import yt_dlp
 
-from utils import build_download_path, detect_platform, sanitize_filename
+from utils import build_download_path, detect_platform, humanize_yt_dlp_error, sanitize_filename
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ class DownloadManager:
             logger.exception("download failed")
             with self.lock:
                 self.jobs[job_id]["status"] = "failed"
-                self.jobs[job_id]["error"] = str(exc)
+                self.jobs[job_id]["error"] = humanize_yt_dlp_error(str(exc))
 
     def get_progress(self) -> list[dict[str, Any]]:
         with self.lock:

@@ -48,3 +48,20 @@ def ensure_ffmpeg_in_path() -> bool:
         if ffmpeg.exists():
             return True
     return False
+
+
+def humanize_yt_dlp_error(error_message: str) -> str:
+    """Return actionable guidance for common yt-dlp failures."""
+    if not error_message:
+        return "Unknown yt-dlp error"
+
+    lowered = error_message.lower()
+    if "sign in to confirm you're not a bot" in lowered:
+        return (
+            "YouTube blocked this request and requires authenticated cookies. "
+            "Retry with yt-dlp cookies via --cookies-from-browser or --cookies. "
+            "See: https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp "
+            "and https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies"
+        )
+
+    return error_message
