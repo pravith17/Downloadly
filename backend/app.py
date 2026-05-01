@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from downloader import DownloadManager
-from utils import is_valid_url
+from utils import humanize_yt_dlp_error, is_valid_url
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +32,7 @@ def analyze():
     try:
         return jsonify(manager.analyze(url))
     except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+        return jsonify({"error": humanize_yt_dlp_error(str(exc))}), 500
 
 
 @app.post("/download")
