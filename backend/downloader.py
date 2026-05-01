@@ -26,11 +26,17 @@ class DownloadManager:
     def _auth_opts() -> dict[str, Any]:
         """Build optional yt-dlp auth/cookie options from environment."""
         opts: dict[str, Any] = {}
+        render_cookies_path = Path("/etc/secrets/cookies.txt")
+        local_cookies_path = Path("cookies.txt")
         cookies_file = os.environ.get("YTDLP_COOKIES_FILE", "").strip()
         cookies_from_browser = os.environ.get("YTDLP_COOKIES_FROM_BROWSER", "").strip()
 
         if cookies_file:
             opts["cookiefile"] = cookies_file
+        elif render_cookies_path.exists():
+            opts["cookiefile"] = str(render_cookies_path)
+        elif local_cookies_path.exists():
+            opts["cookiefile"] = str(local_cookies_path)
         elif cookies_from_browser:
             # Examples: chrome, firefox, edge, safari
             opts["cookiesfrombrowser"] = (cookies_from_browser,)
