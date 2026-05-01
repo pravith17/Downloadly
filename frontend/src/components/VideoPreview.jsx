@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PlayCircle, Clock, Youtube, Instagram, Twitter } from 'lucide-react';
+import { PlayCircle, Clock, MonitorPlay, Camera, MessageSquare } from 'lucide-react';
 
 const PlatformIcon = ({ platform }) => {
   switch (platform?.toLowerCase()) {
-    case 'youtube': return <Youtube className="w-4 h-4 text-red-500" />;
-    case 'instagram': return <Instagram className="w-4 h-4 text-pink-500" />;
-    case 'twitter': return <Twitter className="w-4 h-4 text-blue-400" />;
+    case 'youtube': return <MonitorPlay className="w-4 h-4 text-red-500" />;
+    case 'instagram': return <Camera className="w-4 h-4 text-pink-500" />;
+    case 'twitter': return <MessageSquare className="w-4 h-4 text-blue-400" />;
     default: return <PlayCircle className="w-4 h-4 text-zinc-400" />;
   }
 };
