@@ -11,9 +11,13 @@ from utils import humanize_yt_dlp_error, is_valid_url
 
 logging.basicConfig(level=logging.INFO)
 
-BASE_DIR = Path(__file__).resolve().parent
-DOWNLOAD_DIR = BASE_DIR / "downloads"
+import os
 
+BASE_DIR = Path(__file__).resolve().parent
+if os.environ.get("RENDER"):
+    DOWNLOAD_DIR = BASE_DIR / "downloads"
+else:
+    DOWNLOAD_DIR = Path.home() / "Downloads" / "Downloadly"
 app = Flask(__name__)
 CORS(app)
 manager = DownloadManager(str(DOWNLOAD_DIR))
