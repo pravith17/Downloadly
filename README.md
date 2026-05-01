@@ -52,6 +52,19 @@
 - Added `vercel.json` for Vercel build config.
 - Added `frontend/.env.example` showing required frontend environment variable.
 
+
+## YouTube bot-check / cookies
+When YouTube returns **"Sign in to confirm you're not a bot"**, configure one of these backend environment variables before starting `app.py`:
+- `YTDLP_COOKIES_FILE` -> path to exported Netscape cookies file
+- `YTDLP_COOKIES_FROM_BROWSER` -> browser name (for example: `chrome`, `firefox`, `edge`, `safari`)
+
+Example:
+```bash
+cd backend
+export YTDLP_COOKIES_FROM_BROWSER=chrome
+python app.py
+```
+
 ## REST API
 - `GET /health`
 - `GET /analyze?url=`

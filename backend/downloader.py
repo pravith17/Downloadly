@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import uuid
 from pathlib import Path
@@ -21,8 +22,28 @@ class DownloadManager:
         self.history: list[dict[str, Any]] = []
         self.lock = threading.Lock()
 
+    @staticmethod
+    def _auth_opts() -> dict[str, Any]:
+        """Build optional yt-dlp auth/cookie options from environment."""
+        opts: dict[str, Any] = {}
+        cookies_file = os.environ.get("YTDLP_COOKIES_FILE", "").strip()
+        cookies_from_browser = os.environ.get("YTDLP_COOKIES_FROM_BROWSER", "").strip()
+
+        if cookies_file:
+            opts["cookiefile"] = cookies_file
+        elif cookies_from_browser:
+            # Examples: chrome, firefox, edge, safari
+            opts["cookiesfrombrowser"] = (cookies_from_browser,)
+
+        return opts
+
     def analyze(self, url: str) -> dict[str, Any]:
-        ydl_opts = {"quiet": True, "noplaylist": True, "skip_download": True}
+        ydl_opts = {
+            "quiet": True,
+            "noplaylist": True,
+            "skip_download": True,
+            **self._auth_opts(),
+        }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
@@ -115,6 +136,7 @@ class DownloadManager:
             "writesubtitles": subtitles,
             "subtitleslangs": ["en"],
             "postprocessors": [],
+            **self._auth_opts(),
         }
 
         if audio_only:
