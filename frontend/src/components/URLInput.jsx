@@ -39,7 +39,9 @@ export default function URLInput({ url, setUrl, onAnalyze, isAnalyzing, onDrop }
             )}
           </AnimatePresence>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.9 }}
             onClick={onAnalyze}
             disabled={isAnalyzing || !url}
             className="ml-2 flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -50,7 +52,7 @@ export default function URLInput({ url, setUrl, onAnalyze, isAnalyzing, onDrop }
               <Search className="w-5 h-5" />
             )}
             <span>Analyze</span>
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>

@@ -34,7 +34,15 @@ class DownloadManager:
         if cookies_file:
             opts["cookiefile"] = cookies_file
         elif render_cookies_path.exists():
-            opts["cookiefile"] = str(render_cookies_path)
+            import tempfile
+            import shutil
+            temp_cookies = os.path.join(tempfile.gettempdir(), "render_cookies.txt")
+            try:
+                shutil.copyfile(str(render_cookies_path), temp_cookies)
+                opts["cookiefile"] = temp_cookies
+            except Exception as e:
+                logger.error(f"Failed to copy cookies to temp dir: {e}")
+                opts["cookiefile"] = str(render_cookies_path)
         elif local_cookies_path.exists():
             opts["cookiefile"] = str(local_cookies_path)
         elif cookies_from_browser:

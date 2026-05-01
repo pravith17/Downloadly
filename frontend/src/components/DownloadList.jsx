@@ -18,9 +18,10 @@ export default function DownloadList({ jobs, onCancel }) {
         {jobs.map((job) => (
           <motion.div 
             key={job.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="flex items-center justify-between p-4 glass-card rounded-xl group"
           >
             <div className="flex items-center gap-3 overflow-hidden">

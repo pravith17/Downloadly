@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { api } from './services/api';
 import URLInput from './components/URLInput';
 import VideoPreview from './components/VideoPreview';
@@ -6,7 +6,9 @@ import FormatSelector from './components/FormatSelector';
 import DownloadProgressBar from './components/DownloadProgressBar';
 import DownloadList from './components/DownloadList';
 import NotificationToast from './components/NotificationToast';
-import { DownloadCloud, Sparkles } from 'lucide-react';
+import { DownloadCloud, Sparkles, Activity, Clock, FolderDown } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function App() {
   const [url, setUrl] = useState('');
@@ -18,6 +20,23 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [toast, setToast] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const prevCompletedRef = useRef(new Set());
+
+  // Mouse tracking for background
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Normalize between -1 and 1
+      mouseX.set((e.clientX / window.innerWidth - 0.5) * 2);
+      mouseY.set((e.clientY / window.innerHeight - 0.5) * 2);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
 
   const analyze = async () => {
     if (!url.trim()) return;
@@ -58,7 +77,22 @@ export default function App() {
     const t = setInterval(async () => {
       const [{ data: p }, { data: h }] = await Promise.all([api.get('/progress'), api.get('/history')]);
       setJobs(p); setHistory(h);
-      // Removed auto-toast for completion to prevent spam, it's visible in the progress bar
+      
+      // Check for newly completed jobs to trigger confetti
+      const currentlyCompleted = new Set(p.filter(j => j.status === 'completed').map(j => j.id));
+      currentlyCompleted.forEach(id => {
+        if (!prevCompletedRef.current.has(id)) {
+          confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#34d399', '#059669', '#10b981', '#ffffff']
+          });
+          setToast('Download ready! 🎉');
+          setTimeout(() => setToast(''), 3000);
+        }
+      });
+      prevCompletedRef.current = currentlyCompleted;
     }, 1500);
     return () => clearInterval(t);
   }, []);
@@ -76,11 +110,21 @@ export default function App() {
 
   return (
     <main className="min-h-screen relative overflow-x-hidden selection:bg-emerald-500/30">
-      {/* Dynamic Background */}
-      <div className="fixed inset-0 -z-10 bg-zinc-950">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-600/20 blur-[120px] mix-blend-screen animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[30%] h-[40%] rounded-full bg-teal-600/20 blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-cyan-900/20 blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '4s' }}></div>
+      {/* Dynamic Interactive Background */}
+      <div className="fixed inset-0 -z-10 bg-zinc-950 overflow-hidden pointer-events-none">
+        <motion.div 
+          style={{ x: useSpring(useMotionValue(0), {stiffness: 50}), y: useSpring(useMotionValue(0), {stiffness: 50}) /* using simple motion values */ }}
+          className="absolute inset-0"
+        >
+          <motion.div 
+            style={{ x: springX, y: springY }}
+            className="absolute inset-0 w-full h-full"
+          >
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-600/20 blur-[120px] mix-blend-screen animate-blob"></div>
+            <div className="absolute top-[20%] right-[-10%] w-[30%] h-[40%] rounded-full bg-teal-600/20 blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] rounded-full bg-cyan-900/20 blur-[120px] mix-blend-screen animate-blob" style={{ animationDelay: '4s' }}></div>
+          </motion.div>
+        </motion.div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-12 lg:py-20 animate-fade-in">
@@ -120,16 +164,18 @@ export default function App() {
                 subtitles={subtitles} 
                 setSubtitles={setSubtitles} 
               />
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05, boxShadow: '0px 0px 30px rgba(52, 211, 153, 0.4)' }}
+                whileTap={{ scale: 0.95 }}
                 onClick={startDownload} 
-                className="group relative px-8 py-4 bg-white text-zinc-950 rounded-2xl font-semibold text-lg overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                className="group relative px-8 py-4 bg-white text-zinc-950 rounded-2xl font-semibold text-lg overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <span className="relative flex items-center gap-2 group-hover:text-white transition-colors">
                   <DownloadCloud className="w-5 h-5" />
                   Start Download
                 </span>
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
@@ -191,7 +237,3 @@ export default function App() {
     </main>
   );
 }
-
-// These imports are used above but I need to make sure they are included.
-// Just a patch for the icons that might be missing in App.jsx scope
-import { Activity, Clock, FolderDown } from 'lucide-react';

@@ -22,8 +22,10 @@ export default function DownloadProgressBar({ job }) {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.8, y: -20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="glass-card rounded-xl p-4 mb-3 relative overflow-hidden"
     >
       {/* Background Progress Bar for complete/downloading */}
